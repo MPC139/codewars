@@ -1,100 +1,127 @@
-use std::u128;
-
-
 fn main() {
     println!("Hello, world!");
     println!("solution {}",solution(33));
     luck_check("683179");
     assert_eq!(true,alphanumeric("f"));
     println!("result0: {}",sum_odd_square(897000));
-    println!("result1: {}",solution(1000));
-    println!("result2: {}",fibonacci(100));
+    println!("result1: {}",solution(100));
+    println!("resulto2: {}",even_fibonacci_number(40,4000000));
 }
 
-
-
+/// Finds the sum of all multiples of 3 or 5 below the given number.
+/// Example: solution(10) = 3 + 5 + 6 + 9 = 23
 fn solution(num: i32) -> i32 {
     (1..=(num-1)).filter(|x| x % 3 == 0 || x % 5 == 0).sum()
 }
 
-//1- we receive a ticket number as &str
-//2- check if ticket is empty and return false if it is.
-//3- check if it's a all digit vector
-//4- we have to match ticket len :: lenght%2 == 0 => even :: _ => odd    
-//5- for even option, we've to split off half [len/2] and store both parts in two diferent vector. Then sum these elements and finally compare both result.
+/// Validates if a lottery ticket is "lucky".
+/// A ticket is lucky if the sum of digits in the first half equals the sum of digits in the second half.
+/// 
+/// Rules:
+/// 1. Receive a ticket number as a string slice (&str)
+/// 2. Return false if ticket is empty or contains non-numeric characters
+/// 3. Split the ticket in half at position len/2
+/// 4. For even-length tickets: compare sum of left half with sum of right half
+/// 5. For odd-length tickets: skip the middle digit and compare both halves
 fn luck_check(ticket: &str) -> Option<bool> {
-
+    // Early return: check for empty string or non-numeric characters
     if ticket.is_empty() || !ticket.chars().all(|c| c.is_numeric()) {
         return Some(false);
     };
     
+    // Convert string digits to a vector of integers
     let vec: Vec<i32> = ticket.chars().map(|c| c.to_digit(10).unwrap() as i32).collect();
-
     let mid = vec.len()/2;
     
-
-    let (sum_left,sum_right) = match ticket.len() % 2 {
+    // Split into two halves and calculate their sums
+    let (sum_left, sum_right) = match ticket.len() % 2 {
         0 => {
+            // Even length: both halves have equal length
             let sum_left: i32 = vec[..mid].iter().sum();
             let sum_right: i32 = vec[mid..].iter().sum();
-            (sum_left,sum_right)
+            (sum_left, sum_right)
         },
-        _ =>{
+        _ => {
+            // Odd length: skip the middle digit and sum the remaining parts
             let sum_left: i32 = vec[..mid].iter().sum();
             let sum_right: i32 = vec[mid + 1..].iter().sum();
-            (sum_left,sum_right)
-            
+            (sum_left, sum_right)
         },
     };
     
+    // Return whether both halves have equal sums
     Some(sum_left == sum_right)
 }
 
-// In this example you have to validate if a user input string is alphanumeric. The given string is not nil/null/NULL/None, so you don't have to check that.
-
-// The string has the following conditions to be alphanumeric:
-
-// At least one character ("" is not valid)
-// Allowed characters are uppercase / lowercase latin letters and digits from 0 to 9
-// No whitespaces / underscore
+/// Validates if a string is alphanumeric.
+/// 
+/// Requirements:
+/// - At least one character (empty string is invalid)
+/// - Only uppercase/lowercase letters and digits 0-9 are allowed
+/// - No whitespaces or underscores
 fn alphanumeric(password: &str) -> bool {
-    !password.is_empty() && password.chars().all(|c|c.is_alphanumeric())
+    !password.is_empty() && password.chars().all(|c| c.is_alphanumeric())
 }
 
-// fn sum_odd_square(num:u128)->u128{
-//     let sqrt = num.isqrt();
-//     (1..=sqrt).filter(|x| x%2!=0).map(|x| x*x).sum()
-// }
-
-// fn sum_odd_square(num:u128)->u128{
-//     let mut vec_numbers: Vec<u128> = Vec::new();
-    
-//     let mut count = 1;
-//     loop {
-//         if vec_numbers.len() == (num as usize){break ;}
-//         vec_numbers.push(count*count);
-//         count+=1;
-
-//     };
-//     //println!("{:?}",vec_numbers);
-//     let result: u128 = vec_numbers.iter().filter(|x| *x%2!=0).sum();
-//     result
-// }
-
-fn sum_odd_square(num:u128)->u128{
+/// Calculates the sum of all odd perfect squares up to the given number.
+/// Example: sum_odd_square(10) = 1² + 3² + 5² + 7² + 9² = 1 + 9 + 25 + 49 + 81 = 165
+fn sum_odd_square(num: u128) -> u128 {
     (1..=num).filter(|x| x % 2 != 0).map(|x| x * x).sum()
 }
 
-fn fibonacci(num: i32)->u64{
-    if num == 0 || num == 1 {return 1;}
-    let sqrt_5 = (5 as f64).sqrt();
-    let term1:f64 = 1./sqrt_5;
-    let term2:f64 = (1.+sqrt_5)/2.;
-    let term3:f64 = (1.-sqrt_5)/2.;
-    (term1*(term2.powi(num)-term3.powi(num))) as u64
+/// Generates the Fibonacci sequence using memoization (caching).
+/// This prevents recalculating the same values multiple times.
+/// 
+/// Fibonacci rules:
+/// - F(0) = 0
+/// - F(1) = 1
+/// - F(n) = F(n-1) + F(n-2) for n >= 2
+/// 
+/// Parameters:
+///   num: The highest index of the sequence to calculate
+///   cache_mem: A mutable vector where calculated Fibonacci values are stored
+fn fibonacci(num: u128, cache_mem: &mut Vec<u128>) {
+    for i in 0..=num {
+        match i as usize {
+            // Base case: F(0) = 0
+            0 => cache_mem.push(0),
+            // Base case: F(1) = 1
+            1 => cache_mem.push(1),
+            // Recursive case: sum the two previous Fibonacci numbers
+            2..=<usize>::MAX => {
+                cache_mem.push(cache_mem[i as usize - 1] + cache_mem[i as usize - 2]);
+            },
+            _ => println!("Not valid"),
+        }
+    }
 }
 
-fn fibonacci(num: i32){
-    let cache_mem Vec<i128> = Vec::new();
-    ()
+/// Solves Project Euler Problem #2: Find the sum of all even-valued Fibonacci terms.
+/// Reference: https://projecteuler.net/problem=2
+///
+/// Problem: Each new term in the Fibonacci sequence is generated by adding the previous two terms.
+/// By starting with 1 and 2, the first 10 terms are: 1, 2, 3, 5, 8, 13, 21, 34, 55, 89...
+/// Find the sum of all even-valued Fibonacci numbers that do not exceed four million.
+///
+/// Parameters:
+///   num: The number of Fibonacci terms to generate
+///   limit: The maximum value allowed (4,000,000 for Project Euler #2)
+///
+/// Returns: The sum of all even-valued Fibonacci numbers within the limit
+fn even_fibonacci_number(num: u128, limit: u128) -> u128 {
+    let mut fibo: Vec<u128> = Vec::new();
+    
+    // Generate Fibonacci sequence up to 'num' terms
+    fibonacci(num, &mut fibo);
+    println!("n = {},{:?}", fibo.len() - 1, fibo);
+    
+    // Filter only even numbers that don't exceed the limit
+    let fibo_even: Vec<u128> = fibo
+        .into_iter()
+        .filter(|x| *x % 2 == 0 && *x <= limit)
+        .collect();
+    println!("fibo even, len {} {:?}", fibo_even.len(), fibo_even);
+    
+    // Return the sum of all even-valued Fibonacci numbers
+    fibo_even.iter().sum()
 }
